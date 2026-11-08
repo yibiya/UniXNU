@@ -267,7 +267,7 @@ jobs:
         id: firmware
         if: contains(inputs.steps, 'bootimg')
         run: |
-          git clone --recurse-submodules --depth 1 https://github.com/Emilelu/uefi-mondrian "$GITHUB_WORKSPACE/uefi"
+          git clone --recurse-submodules --depth 1 https://github.com/yibiya/uefi-mondrian "$GITHUB_WORKSPACE/uefi"
           ./unixnu build firmware --uefi "$GITHUB_WORKSPACE/uefi"
 
       - name: Build the boot image
