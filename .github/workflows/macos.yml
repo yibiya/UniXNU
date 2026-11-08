@@ -282,6 +282,17 @@ jobs:
           ls -d "$work/tree/drivers/DarwinBoot22/DarwinBootPkg"
           ./unixnu build firmware --uefi "$GITHUB_WORKSPACE/uefi"
 
+      - name: Upload the firmware volume
+        if: always() && contains(inputs.steps, 'bootimg')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unixnu-${{ steps.check.outputs.board }}-firmware-${{ github.run_attempt }}
+          path: |
+            ${{ github.workspace }}/uefi/Build/**/FV/*.fd
+            ${{ github.workspace }}/uefi/Build/**/FV/*.fd-bootshim
+          if-no-files-found: warn
+          retention-days: 1
+
       - name: Build the boot image
         id: bootimg
         if: contains(inputs.steps, 'bootimg')
