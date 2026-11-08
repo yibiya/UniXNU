@@ -286,8 +286,10 @@ jobs:
         id: bootimg
         if: contains(inputs.steps, 'bootimg')
         run: |
-          dtb=$(find "$GITHUB_WORKSPACE/uefi/Build" -name '*.dtb' | head -n 1)
-          test -n "$dtb"
+          # The device tree is tracked, not built: Firmware/README points at
+          # Platforms/Xiaomi/mondrianPkg/FdtBlob/sm8475-xiaomi-mondrian.dtb.
+          dtb="$GITHUB_WORKSPACE/uefi/Platforms/Xiaomi/mondrianPkg/FdtBlob/sm8475-xiaomi-mondrian.dtb"
+          test -f "$dtb" || { echo "device tree missing: $dtb" >&2; exit 1; }
           ./unixnu bootimg --uefi "$GITHUB_WORKSPACE/uefi" --dtb "$dtb"
 
       - name: Upload the boot image
