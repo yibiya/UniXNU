@@ -39,7 +39,11 @@
 # auto-registers a second security policy; miniamfi stays the only interface.
 # com.apple.security.sandbox needs no demotion: it is not in roots at all and
 # never enters the image.
-"extra_args" = ["--library-only", "com.apple.driver.AppleMobileFileIntegrity",]  # AMFI IOKit service for cache_loader  # 0316 known-good: AMFI demoted, everything else full  # AMFI IOKit service kept; AppleSecurityExtension stripped
+# XnuPrelink has no --library-only switch: emit_prelink.py at the pinned
+# f876e3ee and at current main both take --root/--slide/--output/
+# --early-security-init only. AMFI therefore enters as the full kext and
+# publishes its IOKit service, which is what the userland libamfi lookups need.
+#"extra_args" = ["--library-only", "com.apple.driver.AppleMobileFileIntegrity",]  # AMFI IOKit service for cache_loader  # 0316 known-good: AMFI demoted, everything else full  # AMFI IOKit service kept; AppleSecurityExtension stripped
 
 
 ["payload"]
