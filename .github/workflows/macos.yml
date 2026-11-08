@@ -267,7 +267,10 @@ jobs:
         id: firmware
         if: contains(inputs.steps, 'bootimg')
         run: |
-          git clone --recurse-submodules --depth 1 https://github.com/yibiya/uefi-mondrian "$GITHUB_WORKSPACE/uefi"
+          # No --depth: Mu_Basecore pins fdt libfdt at cfff805, which a shallow
+          # clone cannot resolve ("checkout failed"), and the EDK II build then
+          # has no FdtLib.
+          git clone --recurse-submodules https://github.com/yibiya/uefi-mondrian "$GITHUB_WORKSPACE/uefi"
           ./unixnu build firmware --uefi "$GITHUB_WORKSPACE/uefi"
 
       - name: Build the boot image
