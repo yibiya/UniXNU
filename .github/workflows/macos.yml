@@ -275,18 +275,11 @@ jobs:
           # the tree step only fills the directories of the components it selects,
           # and DarwinBoot22 is a device-local package rather than a core
           # component. Copy it in so PACKAGES_PATH resolves.
-          work=$(python3 - <<'PY'
-          import os, sys
-          sys.path.insert(0, 'scripts')
-          from unixnu.cli import parser, cmd_defconfig
-          from unixnu.config import Context
-          ctx = Context(parser().parse_args(['defconfig', os.environ['DEFCONFIG']]))
-          cmd_defconfig(ctx)
-          print(ctx.work)
-          PY
-          )
+          work=$(./unixnu status | sed -n 's/^output[[:space:]]*//p' | head -n 1)
+          test -n "$work" || { echo "no output dir from unixnu status" >&2; exit 1; }
           mkdir -p "$work/tree/drivers"
           cp -R "$GITHUB_WORKSPACE/device/drivers/DarwinBoot22" "$work/tree/drivers/"
+          ls -d "$work/tree/drivers/DarwinBoot22/DarwinBootPkg"
           ./unixnu build firmware --uefi "$GITHUB_WORKSPACE/uefi"
 
       - name: Build the boot image
