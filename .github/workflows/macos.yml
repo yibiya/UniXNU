@@ -21,6 +21,8 @@ on:
         options:
           - kernel
           - kernel payload
+          - kernel bootimg
+          - kernel payload bootimg
           - kernel userdata
           - kernel userdata payload
         default: kernel
@@ -260,6 +262,32 @@ jobs:
           if [ -f "$RUNNER_TEMP/data.dbr" ]; then args+=(--data-ramdisk "$RUNNER_TEMP/data.dbr"); fi
           if [ "$SKIP_SETUP" = true ]; then args+=(--skip-setup); fi
           ./unixnu build payload "${args[@]}"
+
+      - name: Build firmware
+        id: firmware
+        if: contains(inputs.steps, 'bootimg')
+        run: |
+          git clone --recurse-submodules --depth 1 https://github.com/Emilelu/uefi-mondrian "$GITHUB_WORKSPACE/uefi"
+          ./unixnu build firmware --uefi "$GITHUB_WORKSPACE/uefi"
+
+      - name: Build the boot image
+        id: bootimg
+        if: contains(inputs.steps, 'bootimg')
+        run: |
+          dtb=$(find "$GITHUB_WORKSPACE/uefi/Build" -name '*.dtb' | head -n 1)
+          test -n "$dtb"
+          ./unixnu bootimg --uefi "$GITHUB_WORKSPACE/uefi" --dtb "$dtb"
+
+      - name: Upload the boot image
+        if: always() && contains(inputs.steps, 'bootimg')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unixnu-${{ steps.check.outputs.board }}-boot-${{ github.run_attempt }}
+          path: |
+            ${{ steps.check.outputs.work }}/boot/boot.img
+            ${{ steps.check.outputs.work }}/boot/boot.json
+          if-no-files-found: warn
+          retention-days: 1
 
       - name: Upload the payload
         # The payload FAT carries the native kernel, its ADT and unixnu.toml; it is
