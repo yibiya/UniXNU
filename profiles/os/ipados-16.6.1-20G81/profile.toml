@@ -43,7 +43,7 @@
 # f876e3ee and at current main both take --root/--slide/--output/
 # --early-security-init only. AMFI therefore enters as the full kext and
 # publishes its IOKit service, which is what the userland libamfi lookups need.
-#"extra_args" = ["--library-only", "com.apple.driver.AppleMobileFileIntegrity",]  # AMFI IOKit service for cache_loader  # 0316 known-good: AMFI demoted, everything else full  # AMFI IOKit service kept; AppleSecurityExtension stripped
+"extra_args" = ["--library-only", "com.apple.driver.AppleMobileFileIntegrity"]  # 0316 known-good: AMFI demoted, everything else full
 
 
 ["payload"]
