@@ -98,6 +98,22 @@ The tables populate `root`, `chosen`, `defaults`, `options`, `product`, and
 `buttons`. The common generator creates CHRP NVRAM, a fresh 64-byte random seed,
 platform identity, root matching, and payload memory-map placeholders.
 
+Board-started peripherals that consume absolute metadata can declare typed
+children under `[adt.arm-io.<name>]`. The common generator appends those children
+to the hardware `/arm-io` node without changing its register window. A configured
+child cannot duplicate an exported hardware name. For example:
+
+```toml
+[adt.arm-io.touch.u64]
+spi-base = "0x990000"
+
+[adt.arm-io.touch.u32]
+reset-gpio = 20
+```
+
+This does not create an interrupt provider or translate absolute metadata.
+
+
 ## Standalone conversion
 
 Set the device and SoC source paths. Export `UNIXNU_UNIQUE_CHIP_ID` with the

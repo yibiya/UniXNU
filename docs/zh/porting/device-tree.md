@@ -94,6 +94,21 @@ sleep-disabled = 1
 这些表填充 `root`、`chosen`、`defaults`、`options`、`product` 和 `buttons`。
 共享生成器创建 CHRP NVRAM、64 字节随机种子、平台身份、根卷匹配和 payload 内存映射占位属性。
 
+由板级代码启动、读取绝对地址元数据的外设，可在 `[adt.arm-io.<名称>]` 下声明
+类型化属性。共享生成器把这些子节点追加到硬件 `/arm-io`，不改变寄存器窗口；
+配置子节点不能与已导出的硬件节点重名。例如：
+
+```toml
+[adt.arm-io.touch.u64]
+spi-base = "0x990000"
+
+[adt.arm-io.touch.u32]
+reset-gpio = 20
+```
+
+这不会创建中断提供者，也不会重新转换绝对地址元数据。
+
+
 ## 独立转换
 
 设置设备与 SoC 源码路径，将本机平台种子导出为 `UNIXNU_UNIQUE_CHIP_ID`，并选择 OS 配置：
