@@ -371,10 +371,18 @@ def generate(dtb, config, *, unique_chip_id=None, data=False, trust=False, addon
     names = [entry.strings('unixnu,adt-name')[0] for entry in hardware]
     if len(set(names)) != len(names):
         raise Error('Exported ADT hardware names must be unique')
+    # Metadata-only peripherals can use absolute typed resources without a reg
+    # mapping or interrupt provider; keep the hardware bus window unchanged.
+    configured_hardware = platform.get('arm-io', {})
+    if any(name in names for name in configured_hardware):
+        raise Error('Configured arm-io child duplicates an exported hardware node')
     base, size = arm_io_window(hardware)
+    hardware_nodes = [node(name, hardware_properties(entry, handles, base))
+                      for name, entry in zip(names, hardware)]
+    hardware_nodes += [platform_node(name, table) for name, table in configured_hardware.items()]
     children.append(node('arm-io', [('device_type', b'arm-io\0'), ('#address-cells', struct.pack('<I', 2)),
                          ('#size-cells', struct.pack('<I', 2)), ('ranges', struct.pack('<QQQ', 0, base, size))],
-                         [node(name, hardware_properties(entry, handles, base)) for name, entry in zip(names, hardware)]))
+                         hardware_nodes))
     for name in ('defaults', 'options', 'product', 'buttons'):
         if name in platform or name in ('defaults', 'options', 'product'):
             children.append(platform_node(name, platform.get(name, {})))
