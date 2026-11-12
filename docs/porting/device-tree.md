@@ -58,6 +58,8 @@ See the [device template](/porting/device-repository) and [SoC support](/porting
 | `compatible`, `device_type`, `reg-names`, `interrupt-names`, `clock-names`, `method` | NUL-terminated strings | String bytes |
 | `phandle`, `linux,phandle`, `#interrupt-cells`, `#iommu-cells`, `clock-frequency`, `timebase-frequency`, `transport-encoding`, `transport-speed` | One big-endian cell | Little-endian u32 |
 | `redistributor-stride` | One or two cells | Little-endian u64 |
+| `pong,ufs-hc-base`, `pong,ufs-hc-size`, `pong,gcc-ufs-page`, `pong,smmu-base`, `pong,smmu-size` | One or two cells | Little-endian u64 absolute resource metadata |
+| `pong,smmu-stream-id`, `pong,ufs-spi`, `pong,smmu-context-banks`, `pong,smmu-match-groups` | One cell | Little-endian u32 UFS transport metadata |
 | `interrupt-controller`, `dma-coherent` | Empty property | Empty property |
 | `reg` | Address/size tuples using the parent's cell widths | Translated physical u64 address/size pairs |
 | `interrupts` | Specifiers using the referenced controller's `#interrupt-cells` | Little-endian cells |
@@ -80,6 +82,8 @@ The root supplies `model` and `compatible`. One enabled memory node provides a
 contiguous DRAM range. `/cpus` supplies `timebase-frequency`; each enabled CPU
 has `reg` containing its MPIDR affinity and `compatible`. The first enabled CPU
 is the boot CPU. Multiple CPUs require `/psci` with `method = "smc"` or `"hvc"`.
+The generated `/cpus/max_cpus` counts enabled CPUs. Each enabled node receives
+a dense logical `cpu-id` starting at zero; its physical `reg` affinity remains unchanged.
 
 ## OS properties
 
@@ -219,6 +223,7 @@ cpu0 {
   name = "cpu0";
   state = "running";
   reg = <0>;
+  cpu-id = <0>;
   device_type = "cpu";
   compatible = "arm,cortex-a715";
   timebase-frequency = <19200000>;

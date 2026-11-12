@@ -57,6 +57,8 @@ payload 步骤运行 `dtc`，在解析后的输出目录写入 `device-tree/hard
 | `compatible`, `device_type`, `reg-names`, `interrupt-names`, `clock-names`, `method` | NUL 结尾的字符串 | 字符串字节 |
 | `phandle`, `linux,phandle`, `#interrupt-cells`, `#iommu-cells`, `clock-frequency`, `timebase-frequency`, `transport-encoding`, `transport-speed` | 一个大端 cell | 小端 u32 |
 | `redistributor-stride` | 一或两个 cell | 小端 u64 |
+| `pong,ufs-hc-base`, `pong,ufs-hc-size`, `pong,gcc-ufs-page`, `pong,smmu-base`, `pong,smmu-size` | 一或两个 cell | 小端 u64 绝对资源元数据 |
+| `pong,smmu-stream-id`, `pong,ufs-spi`, `pong,smmu-context-banks`, `pong,smmu-match-groups` | 一个 cell | 小端 u32 UFS 传输元数据 |
 | `interrupt-controller`, `dma-coherent` | 空属性 | 空属性 |
 | `reg` | 按父节点 cell 宽度编码的地址和长度 | 转换后的物理 u64 地址与长度对 |
 | `interrupts` | 按控制器 `#interrupt-cells` 编码的描述符 | 小端 cell |
@@ -77,6 +79,8 @@ payload 步骤运行 `dtc`，在解析后的输出目录写入 `device-tree/hard
 `/cpus` 提供 `timebase-frequency`，各启用 CPU 的 `reg` 保存 MPIDR affinity，
 `compatible` 描述 CPU。第一个启用 CPU 是启动 CPU。多 CPU 需要 `/psci`，
 其 `method` 为 `smc` 或 `hvc`。
+生成的 `/cpus/max_cpus` 是启用 CPU 数量。每个启用节点取得从零开始连续的逻辑
+`cpu-id`，物理 `reg` affinity 保持不变。
 
 ## OS 属性
 
@@ -213,6 +217,7 @@ cpu0 {
   name = "cpu0";
   state = "running";
   reg = <0>;
+  cpu-id = <0>;
   device_type = "cpu";
   compatible = "arm,cortex-a715";
   timebase-frequency = <19200000>;
