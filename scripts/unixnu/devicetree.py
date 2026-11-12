@@ -203,8 +203,9 @@ def arm_io_window(hardware):
 
 
 STRINGS = {'compatible', 'device_type', 'reg-names', 'interrupt-names', 'clock-names', 'method'}
-U32 = {'phandle', 'linux,phandle', '#interrupt-cells', '#iommu-cells', '#clock-cells', 'clock-frequency', 'timebase-frequency', 'transport-encoding', 'transport-speed'}
-U64 = {'redistributor-stride'}
+U32 = {'phandle', 'linux,phandle', '#interrupt-cells', '#iommu-cells', '#clock-cells', 'clock-frequency', 'timebase-frequency', 'transport-encoding', 'transport-speed',
+       'pong,smmu-stream-id', 'pong,ufs-spi', 'pong,smmu-context-banks', 'pong,smmu-match-groups'}
+U64 = {'redistributor-stride', 'pong,ufs-hc-base', 'pong,ufs-hc-size', 'pong,gcc-ufs-page', 'pong,smmu-base', 'pong,smmu-size'}
 FLAGS = {'interrupt-controller', 'dma-coherent'}
 REFERENCES = {'interrupt-parent': None, 'iommus': '#iommu-cells', 'clocks': '#clock-cells'}
 
@@ -349,6 +350,7 @@ def generate(dtb, config, *, unique_chip_id=None, data=False, trust=False, addon
         if len(values) != 1 or values[0][0] > 0xffffffff:
             raise Error(f'{entry.name}: CPU affinity must fit a u32')
         properties = [('reg', struct.pack('<I', values[0][0])),
+                      ('cpu-id', struct.pack('<I', len(cpu_nodes))),
                       ('state', b'running\0' if not cpu_nodes else b'waiting\0'), ('device_type', b'cpu\0'),
                       ('compatible', entry.properties['compatible']),
                       ('timebase-frequency', struct.pack('<I', cpus.scalar('timebase-frequency')))]
@@ -361,7 +363,7 @@ def generate(dtb, config, *, unique_chip_id=None, data=False, trust=False, addon
         cpu_nodes.append(node(f'cpu{len(cpu_nodes)}', properties))
     if not cpu_nodes:
         raise Error('Hardware DTS requires an enabled boot CPU')
-    children.append(node('cpus', children=cpu_nodes))
+    children.append(node('cpus', [('max_cpus', struct.pack('<I', len(cpu_nodes)))], cpu_nodes))
     psci = next((entry for entry in root.children if entry.name == 'psci'), None)
     if len(cpu_nodes) > 1:
         if psci is None or psci.strings('method') not in (['smc'], ['hvc']):
