@@ -39,18 +39,23 @@ def check_args(arguments):
 
 
 def check_data_input(ctx, data):
-    """An owner-Data kernel needs a seed even when it resumes a persistent overlay."""
-    if data:
-        return
+    """Require a seed only for memory-backed Data, never the persistent UFS backend."""
     from .config import parse_config
     config = ctx.config
     if not ctx.config_path.is_file() and ctx.config_name:
         selected = ctx.device / 'configs' / ctx.config_name
         if selected.is_file():
             config = parse_config(selected.read_text())
+    if config.get('XNU_OWNER_DATA_UFS'):
+        if data:
+            raise Error('CONFIG_XNU_OWNER_DATA_UFS uses the installed Data volume; '
+                        'omit --data-ramdisk to avoid attaching a conflicting RAM disk')
+        return
+    if data:
+        return
     if config.get('XNU_OWNER_DATA_MOUNT'):
         raise Error('CONFIG_XNU_OWNER_DATA_MOUNT requires --data-ramdisk FILE (or [build] data_ramdisk); '
-                    'persistent Data still needs its original seed to publish the volume')
+                    'memory-backed Data needs its original seed to publish the volume')
 
 
 def check_native_root(kernel, arguments, vmm_present=False):
