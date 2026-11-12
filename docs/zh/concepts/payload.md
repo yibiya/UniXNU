@@ -41,10 +41,14 @@ initrd = "Payloads/scratch-data.img"
 args = "-v serial=3"
 ```
 
-所选内核配置启用了 `CONFIG_XNU_OWNER_DATA_MOUNT` 时，必须通过
+所选内核配置启用了 `CONFIG_XNU_OWNER_DATA_MOUNT` 且使用内存 Data 后端时，必须通过
 `--data-ramdisk FILE` 或本地构建配置的 `[build] data_ramdisk` 提供种子。
-没有生成 `.config` 时检查所选设备 defconfig。持久化覆盖层也需要原始种子来
-发布 Data 卷；更换种子不能恢复旧 Data。缺少种子会在写负载前报错。
+没有生成 `.config` 时检查所选设备 defconfig。内存后端的持久化覆盖层也需要原始种子；
+更换种子不能恢复旧 Data。
+
+`CONFIG_XNU_OWNER_DATA_UFS=y` 使用已安装的 UFS Data 卷，不能传入 `--data-ramdisk`。
+打包会拒绝这个冲突输入；该后端不生成 scratch Data 文件、`initrd` 条目或 RAMDisk ADT 占位符。
+外层 FAT 负载仍作为 Android 启动镜像的 ramdisk 交付。
 
 提供 Data 种子时存在 `initrd`。`args` 是 `[payload] kernel_args` 和 `--kernel-arg` 合并后的命令行。
 

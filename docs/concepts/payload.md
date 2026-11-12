@@ -103,12 +103,16 @@ An `--owner-trust-cache` bundle is copied without the `[payload] trust_cache_sha
 
 ## Data ramdisk
 
-When the selected kernel configuration enables `CONFIG_XNU_OWNER_DATA_MOUNT`,
-the payload requires `--data-ramdisk FILE` or `[build] data_ramdisk` in the local
-build configuration. Without a generated `.config`, this check reads the
-selected device defconfig. A persistent overlay still needs its original seed
-to publish the Data volume; changing the seed is not a way to resume old Data.
-Missing seeds stop packaging before the payload is written.
+When the selected kernel configuration enables `CONFIG_XNU_OWNER_DATA_MOUNT`
+with a memory-backed Data provider, the payload requires `--data-ramdisk FILE`
+or `[build] data_ramdisk` in the local build configuration. Without a generated
+`.config`, this check reads the selected device defconfig. A memory-backed
+persistent overlay still needs its original seed; changing it cannot resume old Data.
+
+`CONFIG_XNU_OWNER_DATA_UFS=y` instead mounts the installed UFS Data volume.
+Do not supply `--data-ramdisk` for this backend: packaging rejects that conflicting
+input and emits no scratch Data file, `initrd` entry or RAMDisk ADT placeholder.
+The Android boot image still carries the outer FAT payload as its ramdisk.
 
 A Data seed can be delivered in two forms:
 
